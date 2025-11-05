@@ -1,0 +1,51 @@
+# ======================
+# Common system ignores
+# ======================
+.DS_Store
+Thumbs.db
+*.log
+*.pem
+.env*
+.idea/
+.vscode/
+*.bak
+*.swp
+
+# ======================
+# Node / Next.js frontend
+# ======================
+web-practice-fe/node_modules/
+web-practice-fe/.next/
+web-practice-fe/out/
+web-practice-fe/build/
+web-practice-fe/.vercel/
+web-practice-fe/coverage/
+web-practice-fe/next-env.d.ts
+web-practice-fe/*.tsbuildinfo
+web-practice-fe/.pnpm-debug.log*
+web-practice-fe/yarn-error.log*
+web-practice-fe/npm-debug.log*
+
+# ======================
+# WordPress backend
+# ======================
+web-practice-be/wp-content/uploads/
+web-practice-be/wp-content/upgrade/
+web-practice-be/wp-content/cache/
+web-practice-be/wp-content/debug.log
+web-practice-be/wp-config.php
+web-practice-be/.htaccess
+
+# Nếu bạn cài WordPress qua docker volume hoặc local
+# thì không cần commit toàn bộ WordPress core:
+web-practice-be/wp-admin/
+web-practice-be/wp-includes/
+
+# ======================
+# Docker
+# ======================
+/db_data/
+*.pid
+*.seed
+*.sql
+docker-compose.override.yml

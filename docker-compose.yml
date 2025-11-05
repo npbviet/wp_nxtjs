@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  db:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 123123123      # mật khẩu root MySQL (dành cho quản trị)
+      MYSQL_DATABASE: webpractice_db      # database WordPress dùng
+      MYSQL_USER: wpuser                  # user MySQL riêng
+      MYSQL_PASSWORD: wppass              # password cho user wpuser
+    volumes:
+      - db_data:/var/lib/mysql
+
+  wordpress:
+    image: wordpress:latest
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - "8005:80"
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: wpuser           # user MySQL cho WP kết nối
+      WORDPRESS_DB_PASSWORD: wppass       # password trùng với user
+      WORDPRESS_DB_NAME: webpractice_db   # tên database WordPress
+    volumes:
+      - ./wp-headless:/var/www/html
+
+  nextjs:
+    image: vietnguyenphan/web-practice-fe:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_WP_API_URL=http://localhost:8005/wp-json/wp/v2
+    volumes:
+      - ./web-practice-fe:/app
+    working_dir: /app
+    command: pnpm dev
+
+volumes:
+  db_data:

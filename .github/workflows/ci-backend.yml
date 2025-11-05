@@ -1,0 +1,74 @@
+name: CI - Backend (WordPress)
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  backend-checks:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./web-practice-be
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+          tools: composer, wp-cli
+          extensions: mbstring, mysqli
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Validate PHP syntax
+        run: |
+          echo "🔍 Checking PHP syntax..."
+          find . -type f -name "*.php" -not -path "./vendor/*" -exec php -l {} \;
+
+      - name: Prepare Composer environment
+        run: |
+          if [ ! -f composer.json ]; then
+            echo '{}' > composer.json
+          fi
+          composer config --no-plugins allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
+
+      - name: Install PHPCS and WordPress Standards
+        run: |
+          composer require --dev \
+            squizlabs/php_codesniffer:^3.9 \
+            wp-coding-standards/wpcs:^3.0 \
+            phpcsstandards/phpcsextra:^1.4 \
+            phpcsstandards/phpcsutils:^1.0
+          
+          # Đăng ký bộ quy tắc WordPress + Utils + Extra
+          vendor/bin/phpcs --config-set installed_paths \
+            vendor/wp-coding-standards/wpcs,vendor/phpcsstandards/phpcsutils,vendor/phpcsstandards/phpcsextra
+
+      - name: Run PHPCS lint (WordPress code style)
+        run: |
+          echo "🧹 Running WordPress Coding Standards check..."
+          vendor/bin/phpcs \
+            --standard=WordPress \
+            --ignore=vendor,node_modules,wp-admin,wp-includes,wp-content/uploads,wp-config.php,wp-settings.php,wp-cron.php,wp-blog-header.php,wp-links-opml.php \
+            --extensions=php \
+            wp-content/plugins \
+            wp-content/themes \
+            . || true
+
+      - name: Check WordPress config file
+        run: |
+          if [ ! -f wp-config.php ]; then
+            echo "⚠️ Warning: wp-config.php not found. Remember to provide env config on deploy."
+          fi
